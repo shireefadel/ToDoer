@@ -13,7 +13,8 @@ class ToDoViewController: UITableViewController{
     
     // MARK: Global Variables
     
-    var itemsArray = [String]()
+    var itemsArray = [ToDoItem]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
 
     // MARK: Event handlers and LifeCycle
     
@@ -21,9 +22,7 @@ class ToDoViewController: UITableViewController{
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        if let items = UserDefaults.standard.array(forKey: "ItemsArray") as? [String]{
-            itemsArray = items
-        }
+        loadData()
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -35,10 +34,12 @@ class ToDoViewController: UITableViewController{
         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style:.default, handler: { _ in
             
             if !localTextField.text!.isEmpty {
-                self.itemsArray.append(localTextField.text!)
                 
-                UserDefaults.standard.set(self.itemsArray, forKey: "ItemsArray")
-                self.tableView.reloadData()
+                let item  = ToDoItem()
+                item.Text = localTextField.text!
+                self.itemsArray.append(item)
+                
+               self.saveData()
             }
             
         }))
@@ -65,8 +66,9 @@ class ToDoViewController: UITableViewController{
         
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
-        cell.textLabel?.text = itemsArray[indexPath.row]
-    
+        
+        cell.textLabel?.text = itemsArray[indexPath.row].Text
+        cell.accessoryType = itemsArray[indexPath.row].done ? .checkmark : .none
         
         return cell
         
@@ -75,18 +77,45 @@ class ToDoViewController: UITableViewController{
     
      override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
       
-         if let cell = tableView.cellForRow(at: indexPath)
-         {
+         if let cell = tableView.cellForRow(at: indexPath){
         
-            if cell.accessoryType == .checkmark{
-                cell.accessoryType = .none
-            }
-            else{
-                cell.accessoryType = .checkmark
-            }
-            
+            itemsArray[indexPath.row].done = !itemsArray[indexPath.row].done
+
+             self.saveData()
             cell.setSelected(false, animated: true)
         }
+    }
+    
+    
+    // MARK: Data Maipulation
+    
+    func  saveData()  {
+        
+        let encoder = PropertyListEncoder()
+        
+        do{
+            let encodedData = try encoder.encode(itemsArray)
+            try encodedData.write(to: dataFilePath!)
+            
+        }catch{
+            print("Can't encode the current list because: \(error)")
+        }
+       
+        self.tableView.reloadData()
+    }
+    
+    func  loadData()  {
+        
+        if let decodedData = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            
+            do{
+                itemsArray = try  decoder.decode([ToDoItem].self, from: decodedData)
+            }catch{
+                print("Can't decode the current list because: \(error)")
+            }
+        }
+        
     }
     
 }

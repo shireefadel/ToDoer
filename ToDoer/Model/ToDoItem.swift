@@ -9,7 +9,7 @@
 import Foundation
 
 
-class ToDoItem{
+class ToDoItem : Codable {
     var Text : String = ""
     var done : Bool = false
 }
