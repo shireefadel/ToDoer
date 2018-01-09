@@ -13,7 +13,7 @@ class ToDoViewController: UITableViewController{
     
     // MARK: Global Variables
     
-    var itemsArray : [String] = ["Wake Up","Breakfast","Ride your car"]
+    var itemsArray = [String]()
 
     // MARK: Event handlers and LifeCycle
     
@@ -21,6 +21,9 @@ class ToDoViewController: UITableViewController{
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        if let items = UserDefaults.standard.array(forKey: "ItemsArray") as? [String]{
+            itemsArray = items
+        }
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -33,6 +36,8 @@ class ToDoViewController: UITableViewController{
             
             if !localTextField.text!.isEmpty {
                 self.itemsArray.append(localTextField.text!)
+                
+                UserDefaults.standard.set(self.itemsArray, forKey: "ItemsArray")
                 self.tableView.reloadData()
             }
             
