@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoViewController: UITableViewController{
 
@@ -14,7 +15,7 @@ class ToDoViewController: UITableViewController{
     // MARK: Global Variables
     
     var itemsArray = [ToDoItem]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
+    let context  = ((UIApplication.shared.delegate) as? AppDelegate)?.persistentContainer.viewContext
 
     // MARK: Event handlers and LifeCycle
     
@@ -35,8 +36,8 @@ class ToDoViewController: UITableViewController{
             
             if !localTextField.text!.isEmpty {
                 
-                let item  = ToDoItem()
-                item.Text = localTextField.text!
+                let item  = ToDoItem(context: self.context!)
+                item.title = localTextField.text!
                 self.itemsArray.append(item)
                 
                self.saveData()
@@ -67,7 +68,7 @@ class ToDoViewController: UITableViewController{
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemsArray[indexPath.row].Text
+        cell.textLabel?.text = itemsArray[indexPath.row].title
         cell.accessoryType = itemsArray[indexPath.row].done ? .checkmark : .none
         
         return cell
@@ -90,33 +91,56 @@ class ToDoViewController: UITableViewController{
     // MARK: Data Maipulation
     
     func  saveData()  {
-        
-        let encoder = PropertyListEncoder()
-        
+
         do{
-            let encodedData = try encoder.encode(itemsArray)
-            try encodedData.write(to: dataFilePath!)
+            try context?.save()
             
         }catch{
-            print("Can't encode the current list because: \(error)")
+            print("Can't save to the DB because: \(error)")
         }
        
         self.tableView.reloadData()
     }
     
-    func  loadData()  {
-        
-        if let decodedData = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            
+    func  loadData(with request:NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest())  {
             do{
-                itemsArray = try  decoder.decode([ToDoItem].self, from: decodedData)
+                try itemsArray = (context?.fetch(request))!
+                tableView.reloadData()
             }catch{
-                print("Can't decode the current list because: \(error)")
+                print("Can't retreive from the DB because: \(error)")
             }
         }
+    
+}
+
+extension ToDoViewController : UISearchBarDelegate{
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
+        if (searchBar.text?.isEmpty)! {
+            loadData()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+        else{
+            
+            let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            loadData(with: request)
+        }
     }
     
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadData(with: request)
+    }
 }
 
