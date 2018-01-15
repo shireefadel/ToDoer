@@ -13,6 +13,7 @@
 		B49C3456200487AB0050E568 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B49C3455200487AB0050E568 /* Assets.xcassets */; };
 		B49C3459200487AB0050E568 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B49C3457200487AB0050E568 /* LaunchScreen.storyboard */; };
 		B4A852A42005F85A0051F5ED /* DataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = B4A852A22005F85A0051F5ED /* DataModel.xcdatamodeld */; };
+		B4A852C72007795E0051F5ED /* CategoriesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A852C62007795E0051F5ED /* CategoriesViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		B49C3458200487AB0050E568 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B49C345A200487AB0050E568 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B4A852A32005F85A0051F5ED /* DataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataModel.xcdatamodel; sourceTree = "<group>"; };
+		B4A852C62007795E0051F5ED /* CategoriesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +89,7 @@
 			children = (
 				B49C344E200487AB0050E568 /* AppDelegate.swift */,
 				B49C3450200487AB0050E568 /* ToDoViewController.swift */,
+				B4A852C62007795E0051F5ED /* CategoriesViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -173,6 +176,7 @@
 			files = (
 				B49C3451200487AB0050E568 /* ToDoViewController.swift in Sources */,
 				B4A852A42005F85A0051F5ED /* DataModel.xcdatamodeld in Sources */,
+				B4A852C72007795E0051F5ED /* CategoriesViewController.swift in Sources */,
 				B49C344F200487AB0050E568 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

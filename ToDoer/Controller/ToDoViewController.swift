@@ -16,6 +16,12 @@ class ToDoViewController: UITableViewController{
     
     var itemsArray = [ToDoItem]()
     let context  = ((UIApplication.shared.delegate) as? AppDelegate)?.persistentContainer.viewContext
+    var selectedCategory : Category?{
+        didSet{
+            self.navigationItem.title = selectedCategory?.title
+            loadData()
+        }
+    }
 
     // MARK: Event handlers and LifeCycle
     
@@ -23,7 +29,6 @@ class ToDoViewController: UITableViewController{
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        loadData()
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -38,6 +43,7 @@ class ToDoViewController: UITableViewController{
                 
                 let item  = ToDoItem(context: self.context!)
                 item.title = localTextField.text!
+                item.parentCategory = self.selectedCategory
                 self.itemsArray.append(item)
                 
                self.saveData()
@@ -82,7 +88,7 @@ class ToDoViewController: UITableViewController{
         
             itemsArray[indexPath.row].done = !itemsArray[indexPath.row].done
 
-             self.saveData()
+            self.saveData()
             cell.setSelected(false, animated: true)
         }
     }
@@ -102,8 +108,19 @@ class ToDoViewController: UITableViewController{
         self.tableView.reloadData()
     }
     
-    func  loadData(with request:NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest())  {
+    func  loadData(with request:NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(),predicate:NSPredicate? = nil)  {
             do{
+                let categoryPredicate = NSPredicate(format: "parentCategory.title MATCHES %@", selectedCategory!.title!)
+                
+                if let additionalPredicate = predicate{
+                    
+                    let coumpoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate,additionalPredicate])
+                    request.predicate = coumpoundPredicate
+                }
+                else{
+                    request.predicate = categoryPredicate
+                }
+                
                 try itemsArray = (context?.fetch(request))!
                 tableView.reloadData()
             }catch{
@@ -118,6 +135,7 @@ extension ToDoViewController : UISearchBarDelegate{
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
         if (searchBar.text?.isEmpty)! {
+            
             loadData()
             
             DispatchQueue.main.async {
@@ -126,21 +144,24 @@ extension ToDoViewController : UISearchBarDelegate{
         }
         else{
             
-            let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
-            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-            
-            loadData(with: request)
+            search(withTextIn: searchBar)
         }
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
+        search(withTextIn: searchBar)
+    }
+    
+    func search(withTextIn searchBar: UISearchBar)  {
         let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", (searchBar.text)!)
+        
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
-        loadData(with: request)
+        loadData(with: request,predicate: predicate)
     }
 }
 
