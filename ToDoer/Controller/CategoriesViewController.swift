@@ -8,18 +8,20 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 class CategoriesViewController: UITableViewController {
 
     
-    var categoriesArray = [Category]()
-    let context  = ((UIApplication.shared.delegate) as? AppDelegate)?.persistentContainer.viewContext
+    var categories : Results<Category>?
+    
+    let realm = try! Realm()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        
         loadData()
     }
 
@@ -33,11 +35,10 @@ class CategoriesViewController: UITableViewController {
             
             if !localTextField.text!.isEmpty {
                 
-                let item  = Category(context: self.context!)
-                item.title = localTextField.text!
-                self.categoriesArray.append(item)
+                let item  = Category()
+                item.name = localTextField.text!
                 
-                self.saveData()
+                self.saveData(newCategory: item)
             }
             
         }))
@@ -55,17 +56,21 @@ class CategoriesViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return categoriesArray.count
+        let _numberOfRowsInSection = categories?.count == 0 ? 1 : categories?.count ?? 1
+        return _numberOfRowsInSection
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        cell.textLabel?.text = categoriesArray[indexPath.row].title
-        cell.accessoryType = .disclosureIndicator
-        // cell.detailTextLabel? returns nil
-        cell.detailTextLabel?.text = "\(categoriesArray[indexPath.row].childItems!.count)"
+        if   (categories?.count)! > 0 {
+            let cat = categories?[indexPath.row]
+            cell.textLabel?.text = cat?.name
+            cell.accessoryType = .disclosureIndicator
+        }else{
+            cell.textLabel?.text =  "No cateegories added yet!"
+        }
         
         return cell
     }
@@ -73,11 +78,12 @@ class CategoriesViewController: UITableViewController {
     
     // MARK: Data Maipulation
     
-    func  saveData()  {
+    func  saveData(newCategory: Category)  {
         
         do{
-            try context?.save()
-            
+            try realm.write {
+                realm.add(newCategory)
+            }
         }catch{
             print("Can't save to the DB because: \(error)")
         }
@@ -85,13 +91,10 @@ class CategoriesViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    func  loadData(with request:NSFetchRequest<Category> = Category.fetchRequest())  {
-        do{
-            try categoriesArray = (context?.fetch(request))!
+    func  loadData()  {
+        
+            categories = realm.objects( Category.self)
             tableView.reloadData()
-        }catch{
-            print("Can't retreive from the DB because: \(error)")
-        }
     }
     
     
@@ -109,7 +112,7 @@ class CategoriesViewController: UITableViewController {
         // Pass the selected object to the new view controller.
         
         if let itemsVC = segue.destination as? ToDoViewController{
-            itemsVC.selectedCategory = self.categoriesArray[(tableView.indexPathForSelectedRow?.row)!]
+            itemsVC.selectedCategory = self.categories?[(tableView.indexPathForSelectedRow?.row)!] 
         }
     }
     
